@@ -1,0 +1,114 @@
+---
+title: "linear"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message= FALSE}
+## load the important packages
+library(tidyverse)
+library(skimr)
+library(caret)
+library(vip)
+
+## load the data
+election <- read_csv("election2020.csv")
+
+```
+
+```{r}
+## overview of the data
+election %>% head()
+## structure
+election %>% str()
+election %>% view()
+```
+
+
+```{r}
+## doing some descriptive statistics
+## summary statistics
+election %>% summary()
+
+```
+
+```{r}
+## univariate analysis
+election %>% 
+  ggplot(aes(VP))+
+  geom_histogram(fill = "brown")+
+  labs(title = "democratic share of two-party presidential vote",
+       x = "democrat share")
+
+```
+
+
+```{r}
+## growth rate per gdp
+election %>% ggplot(aes(G))+
+  geom_histogram(fill="blue")+
+  labs(title = "Growth rate real per capita",
+       x = "growth")
+```
+
+
+
+```{r}
+## price inflation
+election %>% 
+  ggplot(aes(P))+
+  geom_histogram(fill = "red")+
+  labs(title = "absolute value of the growth rate of gdp",
+       x = "price inflation")
+```
+
+
+```{r}
+## good news
+election %>% 
+  ggplot(aes(Z))+
+  geom_histogram()
+```
+
+
+```{r}
+## build the model
+## some better prediction we need to normalize the data
+model1 <- lm(VP ~ G+P+Z, data = election)
+model1
+summary(model1)
+```
+
+
+```{r}
+model2 <- update(model1, .~. +DPER+DUR)
+summary(model2)
+```
+
+
+```{r}
+broom::tidy(model2)
+```
+
+
+```{r}
+trump <- data.frame(G =-4.4, P = 1.7, Z = 3, DPER = -1, DUR = 0)
+```
+
+
+```{r}
+## predict if trump will win
+prediction <- model2 %>% predict(trump)
+prediction
+```
+
+
+```{r}
+## finding the prediction intervals
+predict(model2, newdata = trump, interval = "prediction")
+
+```
+
